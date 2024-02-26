@@ -68,30 +68,32 @@ gdf["fpbuffer"] = gdf.geometry.buffer(3)
 # change the global options that Geopandas inherits from
 pd.set_option("display.max_columns", None)
 
+
 def handleError(x):
-    try: 
+    try:
         return calcHeight(x)
-    except pdal.pdal_error: 
+    except pdal.pdal_error:
         return {
-        "minHAG": np.nan,
-        "minHAG25": np.nan,
-        "maxHAG": np.nan,
-        "maxHAG25": np.nan,
-        "meanHAG": np.nan,
-        "meanHAG25": np.nan,
-        "medHAG": np.nan,
-        "medHAG25": np.nan,
-        "stdHAG": np.nan,
-        "stdevHAG25": np.nan,
-        "q1HAG": np.nan,
-        "q1HAG25": np.nan,
-        "q3HAG": np.nan,
-        "q3HAG25": np.nan,
-        "ground": np.nan,
-        "heightobs": np.nan,
-        "heightobs25": np.nan,
-        "lidarderived": pdal.pdal_error
-    } 
+            "minHAG": np.nan,
+            "minHAG25": np.nan,
+            "maxHAG": np.nan,
+            "maxHAG25": np.nan,
+            "meanHAG": np.nan,
+            "meanHAG25": np.nan,
+            "medHAG": np.nan,
+            "medHAG25": np.nan,
+            "stdHAG": np.nan,
+            "stdevHAG25": np.nan,
+            "q1HAG": np.nan,
+            "q1HAG25": np.nan,
+            "q3HAG": np.nan,
+            "q3HAG25": np.nan,
+            "ground": np.nan,
+            "heightobs": np.nan,
+            "heightobs25": np.nan,
+            "lidarderived": pdal.pdal_error,
+        }
+
 
 #
 def calcHeight(x):
@@ -232,9 +234,8 @@ def calcHeight(x):
         "ground": meanground,
         "heightobs": heightobs,
         "heightobs25": heightobs25,
-        "lidarderived"= "success"
+        "lidarderived": "success",
     }
-
 
 
 print("beginning the apply and update loop")
