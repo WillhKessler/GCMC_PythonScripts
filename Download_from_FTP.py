@@ -1,8 +1,8 @@
 import sys, ftplib, os, time
 
 server = "prism.oregonstate.edu"
-source = "/daily/tmean/"
-destination = "S:\\GCMC\\Data\\Climate\\PRISM/tmean/daily_4km/"
+source = "/daily/tmin/"
+destination = "S:\\GCMC\\Data\\Climate\\PRISM/tmin/daily_4km/"
 interval = 0.05
 
 ftp = ftplib.FTP(server)
