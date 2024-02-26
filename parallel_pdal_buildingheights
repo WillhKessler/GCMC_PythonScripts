@@ -1,0 +1,57 @@
+import multiprocessing
+import threading
+import json
+
+from multiprocessing import Pool
+
+def definegrid(projName):
+    #Call the USGS
+    #Get the list of projects
+    ## Define Lidar Source
+    #lidarsource="http://usgs-lidar-public.s3.amazonaws.com/MA_CentralEastern_1_2021/ept.json" # Boston
+    lidarsource="http://usgs-lidar-public.s3.amazonaws.com/USGS_LPC_TX_Central_B1_2017_LAS_2019/ept.json" #Austin
+
+def processProject():
+
+
+def lidarPipe(lidarsource,bufferbounds):
+    LAStiles = json.dumps([
+                    {
+                        "type":"readers.ept",
+                        "filename":lidarsource,
+                        "bounds":str(bufferbounds)
+                        },
+                    {
+                        "type":"filters.hag_nn",
+                        "allow_extrapolation":"true",
+                    },
+                    {
+                         "type":"filters.expression",
+                        "expression":"(!(Classification ==2 || Classification ==3 || Classification ==4 || Classification ==5 || Classification ==7 || Classification ==18) && HeightAboveGround>1)"
+                    },
+                    {
+                        "type":"filters.crop",
+                        "polygon":footprintWKT   
+                    },
+                    {
+                         "filename":outputdirectory+"\\"+name+"testlasAOI_{}.las".format("a"+str(count))
+                    } 
+
+                    ])
+        
+
+    pipeline = pdal.Pipeline(LAStiles)
+    pipeline.execute()
+    arrays = pipeline.arrays 
+    return arrays   
+
+
+N = 5000000
+def cube(x):
+    return math.sqrt(x)
+
+
+if __name__ == "__main__":
+    with Pool() as pool:
+      result = pool.map(cube, range(10,N))
+    print("Program finished!")
