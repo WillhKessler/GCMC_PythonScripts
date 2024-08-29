@@ -1,0 +1,19 @@
+import google-api-python-client
+import google-auth-httplib2
+import google-authoauthlib
+from googleapiclient.discovery import build
+from google.oauth2 import service_account
+
+
+
+    #Download finished files
+file_id = 'file_id_to_download'
+file_path = 'path/to/save/downloaded/file.txt'
+
+request = drive_service.files().get_media(fileId=file_id)
+fh = io.FileIO(file_path, mode='wb')
+downloader = MediaIoBaseDownload(fh, request)
+done = False
+
+while not done:
+    status, done = downloader.next_chunk()
