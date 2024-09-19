@@ -60,7 +60,7 @@ SouthAtlantic1 = ee.FeatureCollection("TIGER/2018/States").filter(
                     "Delaware",
                     "Maryland",
                     "District of Columbia",
-                    "Virgiana",
+                    "Virginia",
                     "West Virginia",
                 ]
             ),
@@ -86,8 +86,50 @@ WashingtonOregon = ee.FeatureCollection("TIGER/2018/States").filter(
     (ee.Filter.inList("NAME", ee.List(["Washington", "Oregon"])))
 )
 Montana = ee.FeatureCollection("TIGER/2018/States").filter("NAME=='Montana'")
-# MontanaPart1 = ee.FeatureCollection("TIGER/2018/States").filter("NAME=='Montana'")
-# MontanaPart2 = ee.FeatureCollection("TIGER/2018/States").filter("NAME=='Montana'")
+# Get the geometry of Montana
+montana_geometry = Montana.geometry()
+# Get the bounding box of Montana
+bbox = montana_geometry.bounds()
+# Calculate the midpoint of the bounding box along the X-axis
+bbox_info = bbox.getInfo()
+xmin = bbox_info["coordinates"][0][0][0]
+xmax = bbox_info["coordinates"][0][1][0]
+xmid = (xmin + xmax) / 2
+
+
+# Create a split function for the geometry
+def split_geometry(geometry, xmid):
+    # Define two separate geometries for the two parts
+    part1 = geometry.intersection(
+        ee.Geometry.Rectangle(
+            [
+                xmin,
+                bbox_info["coordinates"][0][0][1],
+                xmid,
+                bbox_info["coordinates"][0][2][1],
+            ]
+        )
+    )
+
+    part2 = montana_geometry.intersection(
+        ee.Geometry.Rectangle(
+            [
+                xmid,
+                bbox_info["coordinates"][0][0][1],
+                xmax,
+                bbox_info["coordinates"][0][2][1],
+            ]
+        )
+    )
+
+    return part1, part2
+
+
+# Apply the split function to the Montana geometry
+part1_geometry, part2_geometry = split_geometry(montana_geometry, xmid)
+# Create FeatureCollections for the two parts
+MontanaPart1 = ee.FeatureCollection(ee.Feature(part1_geometry))
+MontanaPart2 = ee.FeatureCollection(ee.Feature(part2_geometry))
 NorthCarolina1 = ee.FeatureCollection(
     ee.Geometry.Polygon(
         [
@@ -206,52 +248,53 @@ CaliPart2 = ee.FeatureCollection(
 # Values to perform focal statistics. A value of 30 will return the native 30m resolution Landsat
 # Other values include 270, 1230 i.e.
 # focalstats = [30,270,1230]
-focalstats = [1230]
+focalstats = [270]
 
 # Specify years to create an array (with years as columns).
+yrarr = ["1984", "1985", "1989", "1990", "2013"]
 
-yrarr = [
-    "1984",
-    "1985",
-    "1986",
-    "1987",
-    "1988",
-    "1989",
-    "1990",
-    "1991",
-    "1992",
-    "1993",
-    "1994",
-    "1995",
-    "1996",
-    "1997",
-    "1998",
-    "1999",
-    "2000",
-    "2001",
-    "2002",
-    "2003",
-    "2004",
-    "2005",
-    "2006",
-    "2007",
-    "2008",
-    "2009",
-    "2010",
-    "2011",
-    "2012",
-    "2013",
-    "2014",
-    "2015",
-    "2016",
-    "2017",
-    "2018",
-    "2019",
-    "2020",
-    "2021",
-    "2022",
-    "2023",
-]
+# yrarr = [
+#     "1984",
+#     "1985",
+#     "1986",
+#     "1987",
+#     "1988",
+#     "1989",
+#     "1990",
+#     "1991",
+#     "1992",
+#     "1993",
+#     "1994",
+#     "1995",
+#     "1996",
+#     "1997",
+#     "1998",
+#     "1999",
+#     "2000",
+#     "2001",
+#     "2002",
+#     "2003",
+#     "2004",
+#     "2005",
+#     "2006",
+#     "2007",
+#     "2008",
+#     "2009",
+#     "2010",
+#     "2011",
+#     "2012",
+#     "2013",
+#     "2014",
+#     "2015",
+#     "2016",
+#     "2017",
+#     "2018",
+#     "2019",
+#     "2020",
+#     "2021",
+#     "2022",
+#     "2023",
+# ]
 
 # Landsat Collection Years
 Landsatcollections = {
@@ -293,7 +336,8 @@ geolist = [
     Oklahoma,
     ArkansasLouisiana,
     WashingtonOregon,
-    Montana,  # MontanaPart1, #MontanaPart2,
+    MontanaPart1,
+    MontanaPart2,
     NorthCarolina1,
     NorthCarolina2,
     Texas1,
@@ -330,7 +374,8 @@ geonames = [
     "Oklahoma",
     "ArkansasLouisiana",
     "WashingtonOregon",
-    "Montana",  # "MontanaPart1","MontanaPart2",
+    "MontanaPart1",
+    "MontanaPart2",
     "NorthCarolina1",
     "NorthCarolina2",
     "Texas1",
@@ -339,7 +384,7 @@ geonames = [
     "CaliPart1",
     "CaliPart2",
 ]
-geoindex = [9]  # 1:34
+geoindex = [26, 27]  # 1:34
 geolist = [geolist[i] for i in geoindex]
 geonames = [geonames[i] for i in geoindex]
 print(geonames)
@@ -363,6 +408,7 @@ def determineCol(dictionary, start, end):
     # print(start)
     # print(end)
     colls_containing_dates = []
+
     for key, value in dictionary.items():
         # print("dictionary key: ", key)
         # print("dictionary value: ", value)
@@ -379,38 +425,27 @@ def determineCol(dictionary, start, end):
 def GetImage(bdt, edt, geo, fs, col):
     start = datetime.datetime.strptime(bdt, "%Y-%m-%d").date()
     end = datetime.datetime.strptime(edt, "%Y-%m-%d").date()
-    # start = ee.Date(bdt)
-    # end = ee.Date(edt)
     # print(determineCol(col, start, end))
     colkey = determineCol(col, start, end)[0]
     # print("colkey: ", colkey)
     colvalues = col[colkey]
+    # print(colvalues)
 
     # Load a raw Landsat ImageCollection for a single year and filter temporally and spatially.
     # Change to match region of interest.
-    # collection = ee.ImageCollection(colentry.key).filterDate(start, end).filterBounds(geo)
     collection = (
         ee.ImageCollection(colkey)
         .filterDate(ee.Date(bdt), ee.Date(edt))
         .filterBounds(geo)
     )
-    # collection = (
-    #    ee.ImageCollection("LANDSAT/LC08/C02/T1")
-    #    .filterDate(start, end)
-    #    .filterBounds(geo)
-    # )
 
     # Check: How many images in each monthly Landsat image collection?
-    # count = collection.size()
-    # print('Number of images in collection:', count)
+    count = collection.size().getInfo()
+    # print("Number of images in collection:", count)
 
     # Create a cloud-free composite with default parameters. Now, instead of working with an image collection,
     # we are working with a single image. This should reduce the size of the downloads. #
     composite = ee.Algorithms.Landsat.simpleComposite(collection)
-
-    # Check: Did the Landsat composite retain all bands present in the original image collection?
-    # compBands = composite.bandNames()
-    # print('Composite bands:', compBands)
 
     # Add NDVI to image. Be sure to change out bands when switching between Landsat collections.
     NDVIcomp = composite.normalizedDifference(colvalues[1]).rename("NDVI")
@@ -423,11 +458,6 @@ def GetImage(bdt, edt, geo, fs, col):
             kernel=ee.Kernel.circle(radius=fs, units="meters"),
         )
         return texture
-    # Check: Do the NDVI layers now only contain the band labeled 'NDVI'?
-    # bandNames = NDVIcomp.bandNames()
-    # print('Band names:', bandNames)
-
-    # return NDVIcomp
 
 
 # Use loops over years, start, end dates to pull images (only nd band).
@@ -464,8 +494,7 @@ for f in range(0, len(focalstats), 1):
                     maxPixels=1e13,
                 )
                 task.start()
-                time.sleep(2.5)
-                # print(task.status())
+                time.sleep(0.5)
 
 
 while (
