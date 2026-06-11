@@ -248,7 +248,7 @@ CaliPart2 = ee.FeatureCollection(
 
 
 # Specify years to create an array (with years as columns).
-yrarr = ["2022", "2023", "2024"]
+yrarr = ["2024","2025"]
 
 # Landsat Collection Years
 collections = {
@@ -434,8 +434,8 @@ for h in range(0, len(geolist), 1):
             )
             task = ee.batch.Export.image.toDrive(
                 image=img,
-                description=geonames[h] + "_" + makeMoSt(yrarr[i])[j],
-                folder="LANVIIRS",
+                description=geonames[h] + "_" + "30" + "_" + makeMoSt(yrarr[i])[j],
+                folder='LAN_VIIRS',
                 region=geolist[h].geometry(),
                 crs="EPSG:4326",
                 fileFormat="GeoTIFF",
