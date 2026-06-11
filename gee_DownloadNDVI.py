@@ -7,16 +7,21 @@ ee.Authenticate()
 ee.Initialize(project="ee-create-ndvi-1")
 
 ########### REQUIRED INPUTS ###########################################################################
+########### REQUIRED INPUTS ###########################################################################
+Maine = ee.FeatureCollection("TIGER/2018/States").filter("NAME == 'Maine'")
+Massachusetts = ee.FeatureCollection("TIGER/2018/States").filter(
+    "NAME == 'Massachusetts'"
+)
+Vermont = ee.FeatureCollection("TIGER/2018/States").filter("NAME == 'Vermont'")
+NewHampshire = ee.FeatureCollection("TIGER/2018/States").filter(
+    "NAME == 'New Hampshire'"
+)
 NewEngland = ee.FeatureCollection("TIGER/2018/States").filter(
     (
         ee.Filter.inList(
             "NAME",
             ee.List(
                 [
-                    "Maine",
-                    "Vermont",
-                    "New Hampshire",
-                    "Massachusetts",
                     "Rhode Island",
                     "Connecticut",
                 ]
@@ -24,12 +29,9 @@ NewEngland = ee.FeatureCollection("TIGER/2018/States").filter(
         )
     )
 )
-
-# ee.FeatureCollection("users/nhisa/NewEngland")
 MiddleAtlantic = ee.FeatureCollection("TIGER/2018/States").filter(
     (ee.Filter.inList("NAME", ee.List(["New York", "Pennsylvania", "New Jersey"])))
 )
-# ee.FeatureCollection("users/nhisa/MiddleAtlantic")
 Wisconsin = ee.FeatureCollection("TIGER/2018/States").filter("NAME == 'Wisconsin'")
 Michigan = ee.FeatureCollection("TIGER/2018/States").filter("NAME == 'Michigan'")
 Illinois = ee.FeatureCollection("TIGER/2018/States").filter("NAME == 'Illinois'")
@@ -248,10 +250,10 @@ CaliPart2 = ee.FeatureCollection(
 # Values to perform focal statistics. A value of 30 will return the native 30m resolution Landsat
 # Other values include 270, 1230 i.e.
 # focalstats = [30,270,1230]
-focalstats = [270]
+focalstats = [30, 90, 270, 1230]
 
 # Specify years to create an array (with years as columns).
-yrarr = ["1984", "1985", "1989", "1990", "2013"]
+yrarr = ["2025"]
 
 # yrarr = [
 #     "1984",
@@ -310,6 +312,10 @@ Landsatcollections = {
 #######################################################################################################
 ## Code to pull seasonal NDVI from Landsat 8 data with cloud mask for contiguous United States
 geolist = [
+    Maine,
+    Massachusetts,
+    Vermont,
+    NewHampshire,
     NewEngland,
     MiddleAtlantic,
     Wisconsin,
@@ -348,6 +354,10 @@ geolist = [
 ]
 
 geonames = [
+    "Maine",
+    "Massachusetts",
+    "Vermont",
+    "NewHampshire",
     "NewEngland",
     "MiddleAtlantic",
     "Wisconsin",
@@ -384,10 +394,10 @@ geonames = [
     "CaliPart1",
     "CaliPart2",
 ]
-geoindex = [26, 27]  # 1:34
+geoindex = list(range(0, 39))  # 0:38
 geolist = [geolist[i] for i in geoindex]
 geonames = [geonames[i] for i in geoindex]
-print(geonames)
+# print(geonames)
 
 
 # Populate array with start dates in the format of year-mo-day by season.
@@ -425,9 +435,9 @@ def determineCol(dictionary, start, end):
 def GetImage(bdt, edt, geo, fs, col):
     start = datetime.datetime.strptime(bdt, "%Y-%m-%d").date()
     end = datetime.datetime.strptime(edt, "%Y-%m-%d").date()
-    # print(determineCol(col, start, end))
+    print(determineCol(col, start, end))
     colkey = determineCol(col, start, end)[0]
-    # print("colkey: ", colkey)
+    print("colkey: ", colkey)
     colvalues = col[colkey]
     # print(colvalues)
 
@@ -440,7 +450,7 @@ def GetImage(bdt, edt, geo, fs, col):
     )
 
     # Check: How many images in each monthly Landsat image collection?
-    count = collection.size().getInfo()
+    # count = collection.size().getInfo()
     # print("Number of images in collection:", count)
 
     # Create a cloud-free composite with default parameters. Now, instead of working with an image collection,
