@@ -252,7 +252,7 @@ CaliPart2 = ee.FeatureCollection(
 focalstats = [30]
 
 # Specify years to create an array (with years as columns).
-yrarr = ["1994","1995","1996"]
+yrarr = ["2025"]
 
 # yrarr = [
 #     "1984",
@@ -476,7 +476,7 @@ def GetImage(bdt, edt, geo, fs, col):
         )
         return texture
 
-
+export_folder='EVI'
 # Use loops over years, start, end dates to pull images (only nd band).
 for f in range(0, len(focalstats), 1):
     for h in range(0, len(geolist), 1):
@@ -503,7 +503,7 @@ for f in range(0, len(focalstats), 1):
                     + str(focalstats[f])
                     + "_"
                     + makeSt(yrarr[i])[j],
-                    folder='EVI',
+                    folder=export_folder,
                     region=geolist[h].geometry(),
                     crs="EPSG:4326",
                     fileFormat="GeoTIFF",
