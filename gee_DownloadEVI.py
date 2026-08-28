@@ -4,7 +4,8 @@ import time
 import json
 
 ee.Authenticate()
-ee.Initialize(project="ee-create-ndvi-1")
+#ee.Initialize(project="ee-create-ndvi-1")
+ee.Initialize(project="earthengine-evi")
 
 ########### REQUIRED INPUTS ###########################################################################
 Maine = ee.FeatureCollection("TIGER/2018/States").filter("NAME == 'Maine'")
@@ -252,7 +253,7 @@ CaliPart2 = ee.FeatureCollection(
 focalstats = [30]
 
 # Specify years to create an array (with years as columns).
-yrarr = ["2025"]
+yrarr = ["2013"]
 
 # yrarr = [
 #     "1984",
@@ -303,7 +304,7 @@ Landsatcollections = {
         list(range(2022, int(datetime.date.today().year) + 1)),
         ["B5", "B4", "B2"],
     ],
-    "LANDSAT/LC08/C02/T1": [list(range(2013, 2023)), ["B5", "B4", "B2"]],
+    "LANDSAT/LC08/C02/T1": [list(range(2014, 2023)), ["B5", "B4", "B2"]],
     "LANDSAT/LE07/C02/T1": [list(range(2000, 2021)), ["B4", "B3", "B1"]],
     "LANDSAT/LT05/C02/T1": [list(range(1984, 2012)), ["B4", "B3", "B1"]],
 }
