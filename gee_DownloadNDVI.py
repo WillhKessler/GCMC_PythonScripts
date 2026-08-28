@@ -304,7 +304,7 @@ Landsatcollections = {
         list(range(2022, int(datetime.date.today().year) + 1)),
         ["B5", "B4"],
     ],
-    "LANDSAT/LC08/C02/T1": [list(range(2013, 2023)), ["B5", "B4"]],
+    "LANDSAT/LC08/C02/T1": [list(range(2014, 2023)), ["B5", "B4"]],
     "LANDSAT/LE07/C02/T1": [list(range(2000, 2021)), ["B4", "B3"]],
     "LANDSAT/LT05/C02/T1": [list(range(1984, 2012)), ["B4", "B3"]],
 }
@@ -469,7 +469,7 @@ def GetImage(bdt, edt, geo, fs, col):
         )
         return texture
 
-
+export_folder='NDVI'
 # Use loops over years, start, end dates to pull images (only nd band).
 for f in range(0, len(focalstats), 1):
     for h in range(0, len(geolist), 1):
@@ -496,7 +496,7 @@ for f in range(0, len(focalstats), 1):
                     + str(focalstats[f])
                     + "_"
                     + makeSt(yrarr[i])[j],
-                    folder="NDVI",
+                    folder=export_folder,
                     region=geolist[h].geometry(),
                     crs="EPSG:4326",
                     fileFormat="GeoTIFF",
