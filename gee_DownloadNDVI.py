@@ -300,10 +300,7 @@ yrarr = ["2025"]
 
 # Landsat Collection Years
 Landsatcollections = {
-    "LANDSAT/LC09/C02/T1": [
-        list(range(2022, int(datetime.date.today().year) + 1)),
-        ["B5", "B4"],
-    ],
+    "LANDSAT/LC09/C02/T1": [list(range(2022, int(datetime.date.today().year) + 1)),["B5", "B4"]],
     "LANDSAT/LC08/C02/T1": [list(range(2014, 2023)), ["B5", "B4"]],
     "LANDSAT/LE07/C02/T1": [list(range(2000, 2021)), ["B4", "B3"]],
     "LANDSAT/LT05/C02/T1": [list(range(1984, 2012)), ["B4", "B3"]],
