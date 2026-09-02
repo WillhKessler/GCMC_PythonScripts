@@ -282,8 +282,10 @@ yrarr = ["2005"]
 MODIScollections = {
     "MODIS/061/MCD15A3H": [
         list(range(2004, int(datetime.date.today().year) + 1)),
-        ["Lai"],
-    ]
+        ["Lai"]],
+    "MODIS/061/MOD15A2H":[
+        list(range(2002, int(datetime.date.today().year) + 1)),
+        ["Lai"]]
 }
 
 #######################################################################################################
