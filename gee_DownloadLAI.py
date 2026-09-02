@@ -7,7 +7,7 @@ import time
 import json
 
 ee.Authenticate()
-ee.Initialize(project="earthengine-LAI")
+ee.Initialize(project="earthengine-leafareaindex")
 
 ########### REQUIRED INPUTS ###########################################################################
 Maine = ee.FeatureCollection("TIGER/2018/States").filter("NAME == 'Maine'")
@@ -373,7 +373,8 @@ geonames = [
     "CaliPart1",
     "CaliPart2",
 ]
-geoindex = list(range(0, 39))  # 0:38
+geoindex=list(range(0,1))
+#geoindex = list(range(0, 39))  # 0:38
 geolist = [geolist[i] for i in geoindex]
 geonames = [geonames[i] for i in geoindex]
 # print(geonames)
