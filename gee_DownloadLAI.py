@@ -10,6 +10,21 @@ ee.Authenticate()
 ee.Initialize(project="earthengine-leafareaindex")
 
 ########### REQUIRED INPUTS ###########################################################################
+# Split a geometry into western and eastern halves at the midpoint of its bounding box.
+# Uses only the geometry passed in (no globals), and derives the bounds by min/max
+# rather than by hardcoding vertex positions.
+def split_geometry(geometry):
+    coords = geometry.bounds().getInfo()["coordinates"][0]
+    xs = [c[0] for c in coords]
+    ys = [c[1] for c in coords]
+    xmin, xmax, ymin, ymax = min(xs), max(xs), min(ys), max(ys)
+    xmid = (xmin + xmax) / 2
+ 
+    west = ee.Geometry.Rectangle([xmin, ymin, xmid, ymax])
+    east = ee.Geometry.Rectangle([xmid, ymin, xmax, ymax])
+    return geometry.intersection(west), geometry.intersection(east)
+
+
 Maine = ee.FeatureCollection("TIGER/2018/States").filter("NAME == 'Maine'")
 Massachusetts = ee.FeatureCollection("TIGER/2018/States").filter(
     "NAME == 'Massachusetts'"
@@ -89,135 +104,33 @@ ArkansasLouisiana = ee.FeatureCollection("TIGER/2018/States").filter(
 WashingtonOregon = ee.FeatureCollection("TIGER/2018/States").filter(
     (ee.Filter.inList("NAME", ee.List(["Washington", "Oregon"])))
 )
+
 Montana = ee.FeatureCollection("TIGER/2018/States").filter("NAME=='Montana'")
 # Get the geometry of Montana
 montana_geometry = Montana.geometry()
-# Get the bounding box of Montana
-bbox = montana_geometry.bounds()
-# Calculate the midpoint of the bounding box along the X-axis
-bbox_info = bbox.getInfo()
-xmin = bbox_info["coordinates"][0][0][0]
-xmax = bbox_info["coordinates"][0][1][0]
-xmid = (xmin + xmax) / 2
-
-
-# Create a split function for the geometry
-def split_geometry(geometry, xmid):
-    # Define two separate geometries for the two parts
-    part1 = geometry.intersection(
-        ee.Geometry.Rectangle(
-            [
-                xmin,
-                bbox_info["coordinates"][0][0][1],
-                xmid,
-                bbox_info["coordinates"][0][2][1],
-            ]
-        )
-    )
-
-    part2 = montana_geometry.intersection(
-        ee.Geometry.Rectangle(
-            [
-                xmid,
-                bbox_info["coordinates"][0][0][1],
-                xmax,
-                bbox_info["coordinates"][0][2][1],
-            ]
-        )
-    )
-
-    return part1, part2
-
-
 # Apply the split function to the Montana geometry
-part1_geometry, part2_geometry = split_geometry(montana_geometry, xmid)
+mtpart1_geometry, mtpart2_geometry = split_geometry(montana_geometry)
 # Create FeatureCollections for the two parts
-MontanaPart1 = ee.FeatureCollection(ee.Feature(part1_geometry))
-MontanaPart2 = ee.FeatureCollection(ee.Feature(part2_geometry))
-NorthCarolina1 = ee.FeatureCollection(
-    ee.Geometry.Polygon(
-        [
-            [
-                [-79.87127913135589, 34.6475657094146],
-                [-79.82733381885589, 36.7000345583985],
-                [-81.56317366260589, 36.73526074759321],
-                [-83.95819319385589, 35.77850267461113],
-                [-84.57342756885589, 34.95428963577578],
-            ]
-        ]
-    )
-)
-NorthCarolina2 = ee.FeatureCollection(
-    ee.Geometry.Polygon(
-        [
-            [
-                [-79.95916975635589, 36.68241540701664],
-                [-79.98114241260589, 34.52093631007121],
-                [-78.57489241260589, 33.64744450793628],
-                [-75.27899397510589, 35.17011242695719],
-                [-75.54266585010589, 36.68241540701664],
-            ]
-        ]
-    )
-)
-Texas1 = ee.FeatureCollection(
-    ee.Geometry.Polygon(
-        [
-            [
-                [-106.95018365101828, 31.571191097909335],
-                [-104.04407126926088, 29.02490694926815],
-                [-102.76778856927473, 28.860640430484562],
-                [-100.96243871579134, 29.140100562395375],
-                [-100.58926678247121, 31.57612467416733],
-                [-100.56234094836174, 32.74832231817455],
-                [-98.5875197391764, 32.874743593476815],
-                [-99.62520412839933, 33.558122258092425],
-                [-101.37384063181275, 34.24031311583509],
-                [-103.23085205724044, 35.08164585686119],
-                [-103.52322199301977, 32.599948737593586],
-                [-106.73029756525608, 32.763955944712755],
-            ]
-        ]
-    )
-)
-Texas2 = ee.FeatureCollection(
-    ee.Geometry.Polygon(
-        [
-            [
-                [-101.82514415191838, 34.23181468294845],
-                [-98.14270255402835, 32.54366653272459],
-                [-96.41987071441838, 32.61812188224064],
-                [-96.3011237452825, 32.94684136579612],
-                [-96.41850274752244, 33.59108908144482],
-                [-96.24408946441838, 34.34074188365456],
-                [-99.58393321441838, 34.77503564842936],
-                [-99.53998790191838, 36.73626923170851],
-                [-103.36323008941838, 36.73626923170851],
-                [-103.24335628841823, 34.83709347009601],
-            ]
-        ]
-    )
-)
-Texas3 = ee.FeatureCollection(
-    ee.Geometry.Polygon(
-        [
-            [
-                [-100.73630963148452, 32.8264230021364],
-                [-101.0880414609498, 28.598765047302464],
-                [-99.28724949103554, 26.456491317158285],
-                [-96.87131828995695, 25.429468427428645],
-                [-97.0030947273849, 27.513291750832348],
-                [-93.48922178647081, 29.52017148459367],
-                [-93.13799709965656, 31.600175515662198],
-                [-93.47628690349842, 32.61761488463087],
-                [-93.65206005068751, 33.567229372010715],
-                [-94.98365801829914, 34.14573226729637],
-                [-96.50474241124965, 34.03544139797709],
-                [-96.8711681657499, 33.041728559753345],
-            ]
-        ]
-    )
-)
+MontanaPart1 = ee.FeatureCollection(ee.Feature(mtpart1_geometry))
+MontanaPart2 = ee.FeatureCollection(ee.Feature(mtpart2_geometry))
+
+
+NorthCarolina = ee.FeatureCollection("TIGER/2018/States").filter("NAME=='North Carolina'")
+northcarolina_geometry = NorthCarolina.geometry()
+# Apply the split function to the Montana geometry
+ncpart1_geometry, ncpart2_geometry = split_geometry(northcarolina_geometry)
+# Create FeatureCollections for the two parts
+NorthCarolina1 = ee.FeatureCollection(ee.Feature(ncpart1_geometry))
+NorthCarolina2 = ee.FeatureCollection(ee.Feature(ncpart2_geometry))
+
+Texas = ee.FeatureCollection("TIGER/2018/States").filter("NAME=='Texas'")
+texas_geometry = Texas.geometry()
+# Apply the split function to the Montana geometry
+txpart1_geometry, txpart2_geometry = split_geometry(texas_geometry)
+# Create FeatureCollections for the two parts
+Texas1 = ee.FeatureCollection(ee.Feature(txpart1_geometry))
+Texas2 = ee.FeatureCollection(ee.Feature(txpart2_geometry))
+
 CaliPart1 = ee.FeatureCollection(
     ee.Geometry.Polygon(
         [
@@ -251,7 +164,7 @@ CaliPart2 = ee.FeatureCollection(
 
 # Values to perform focal statistics. A value of 500 will return the native 500m resolution MODIS imagery
 # focalstats = [500,1000]
-focalstats = [500]
+focalstats = [500,1000]
 
 # Specify years to create an array (with years as columns).
 yrarr = ["2005"]
@@ -287,6 +200,21 @@ MODIScollections = {
         list(range(2002, int(datetime.date.today().year) + 1)),
         ["Lai"]]
 }
+
+# Collection to use when a year is covered by more than one collection.
+#   MCD15A3H = 4-day composite combining Terra + Aqua (more observations, fewer gaps)
+#   MOD15A2H = 8-day Terra-only
+# Do not merge the two: MCD15A3H already contains Terra data.
+PREFERRED_COLLECTION = "MODIS/061/MCD15A3H"
+ 
+# Optional stricter QC: also require CloudState == 0 (no significant clouds).
+# This leaves more gaps, especially in winter at northern latitudes.
+REQUIRE_CLEAR_SKY = False
+ 
+# Optional: value to write in place of masked pixels in the exported GeoTIFFs.
+# Leave as None to keep masked pixels as no-data. If you set a value (e.g. -9999),
+# set the same value as the nodata value when reading the files.
+NODATA_VALUE = None
 
 #######################################################################################################
 ## Code to pull seasonal NDVI from MODIS 8 data with cloud mask for contiguous United States
@@ -327,7 +255,6 @@ geolist = [
     NorthCarolina2,
     Texas1,
     Texas2,
-    Texas3,
     CaliPart1,
     CaliPart2,
 ]
@@ -369,7 +296,6 @@ geonames = [
     "NorthCarolina2",
     "Texas1",
     "Texas2",
-    "Texas3",
     "CaliPart1",
     "CaliPart2",
 ]
@@ -377,13 +303,12 @@ geoindex=list(range(0,1))
 #geoindex = list(range(0, 39))  # 0:38
 geolist = [geolist[i] for i in geoindex]
 geonames = [geonames[i] for i in geoindex]
-# print(geonames)
+
 
 
 # Populate array with start dates in the format of year-mo-day by season.
 def makeSt(yr):
     stArr = [yr + "-01-01", yr + "-04-01", yr + "-07-01", yr + "-10-01"]
-    # print(stArr)
     return stArr
 
 
@@ -395,30 +320,57 @@ def makeEd(yr):
 
 # Function to determine the correct collection and parameters
 def determineCol(dictionary, start, end):
-    # print(start)
-    # print(end)
     colls_containing_dates = []
 
     for key, value in dictionary.items():
-        # print("dictionary key: ", key)
-        # print("dictionary value: ", value)
-        # print("dictionary value 0: ", value[0])
         if start.year in value[0]:
-            # print("true")
             colls_containing_dates.append(key)
-    # print(colls_containing_dates)
     return colls_containing_dates
 
+# Explicitly choose a collection when more than one covers the requested year.
+def pick_collection(dictionary, start, end, prefer=PREFERRED_COLLECTION):
+    candidates = determineCol(dictionary, start, end)
+    if not candidates:
+        raise ValueError("No MODIS LAI collection covers year {}".format(start.year))
+    return prefer if prefer in candidates else candidates[0]
+ 
+
+# Per-image preparation: select Lai, mask fill values and low-quality retrievals,
+# apply the 0.1 scale factor, and name the band "LAI".
+def prep_lai(img):
+    lai = img.select("Lai")
+    qc = img.select("FparLai_QC")
+ 
+    # Valid Lai is 0-100; 249-255 are fill values (water, barren, urban, snow/ice, no retrieval)
+    valid = lai.lte(100)
+ 
+    # FparLai_QC bits 5-7 = SCF_QC:
+    # 0 = main method, best result; 1 = main method, saturated
+    # (2+ = backup algorithm or no retrieval)
+    main_method = qc.rightShift(5).bitwiseAnd(7).lte(1)
+ 
+    mask = valid.And(main_method)
+ 
+    if REQUIRE_CLEAR_SKY:
+        # FparLai_QC bits 3-4 = CloudState; 0 = no significant clouds
+        clear = qc.rightShift(3).bitwiseAnd(3).eq(0)
+        mask = mask.And(clear)
+ 
+    return (
+        lai.updateMask(mask)
+        .multiply(0.1)  # scale factor -> m2/m2
+        .rename("LAI")
+        .copyProperties(img, ["system:time_start"])
+    )
+ 
 
 # Create a function to:
 # Pull MODIS scenes between start and end dates as defined above.
 def GetImage(bdt, edt, geo, fs, col):
     start = datetime.datetime.strptime(bdt, "%Y-%m-%d").date()
     end = datetime.datetime.strptime(edt, "%Y-%m-%d").date()
-    print(determineCol(col, start, end))
-    colkey = determineCol(col, start, end)[0]
-    print("colkey: ", colkey)
-    colvalues = col[colkey]
+    colkey = pick_collection(col, start, end, prefer=PREFERRED_COLLECTION)
+
 
     # Load a raw MODIS ImageCollection for a single year and filter temporally and spatially.
     # Change to match region of interest.
@@ -426,19 +378,23 @@ def GetImage(bdt, edt, geo, fs, col):
         ee.ImageCollection(colkey)
         .filterDate(ee.Date(bdt), ee.Date(edt))
         .filterBounds(geo)
+        .select(["Lai","FparLai_QC"])
     )
 
     
-    # Mosaic images in collection to single LAI composite. Rename output to LAI
-    LAIcomp = collection.mean().rename("LAI")
+        # Mask/scale each image, then average to a single seasonal LAI composite.
+    # Masked pixels are ignored by mean(). The band is already named "LAI".
+    LAIcomp = collection.map(prep_lai).mean()
     if fs == 500:
         return LAIcomp
     else:
+        # reduceNeighborhood appends "_mean" to band names -> "LAI_mean"
         texture = LAIcomp.reduceNeighborhood(
             reducer=ee.Reducer.mean(),
             kernel=ee.Kernel.circle(radius=fs, units="meters"),
         )
         return texture
+
 
 export_folder='LAI'
 # Use loops over years, start, end dates to pull images (only nd band).
@@ -455,13 +411,17 @@ for f in range(0, len(focalstats), 1):
                     focalstats[f],
                     MODIScollections,
                 )
-                if focalstats[f] == 30:
-                    imgndvi = img.select(["LAI"])
+                if focalstats[f] == 500:
+                    imglai = img.select(["LAI"])
                 else:
-                    imgndvi = img.select(["LAI_mean"])
-                # print("hij loop: ", h, i, j)
+                    imglai = img.select(["LAI_mean"])
+
+                if NODATA_VALUE is not None:
+                    imglai = imglai.unmask(NODATA_VALUE)
+
+                #print("hij loop: ", h, i, j)
                 task = ee.batch.Export.image.toDrive(
-                    image=imgndvi,
+                    image=imglai,
                     description=geonames[h]
                     + "_"
                     + str(focalstats[f])
@@ -478,27 +438,9 @@ for f in range(0, len(focalstats), 1):
                 time.sleep(0.5)
 
 
-while (
-    len([td for td in ee.data.getTaskList() if td["state"] in {"RUNNING", "READY"}]) > 0
-):
-    print(
-        "There are currently {} tasks in the queue. The following tasks are running: ".format(
-            len(
-                [
-                    td
-                    for td in ee.data.getTaskList()
-                    if td["state"] in {"RUNNING", "READY"}
-                ]
-            )
-        )
-    )
-    print(
-        json.dumps(
-            [td for td in ee.data.getTaskList() if td["state"] in {"RUNNING"}],
-            sort_keys=False,
-            indent=4,
-        )
-    )
-
-    print("")
+while True:
+    active = [td for td in ee.data.getTaskList() if td["state"] in {"READY", "RUNNING"}]
+    if not active:
+        break
+    print("{} tasks still queued or running".format(len(active)))
     time.sleep(300)
