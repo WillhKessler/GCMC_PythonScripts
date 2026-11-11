@@ -4,7 +4,8 @@ import time
 import json
 
 ee.Authenticate()
-ee.Initialize(project="ee-create-ndvi-1")
+##ee.Initialize(project="us-ndvi")
+ee.Initialize(project="earthengine-evi")
 
 ########### REQUIRED INPUTS ###########################################################################
 ########### REQUIRED INPUTS ###########################################################################
@@ -253,7 +254,7 @@ CaliPart2 = ee.FeatureCollection(
 focalstats = [30, 90, 270, 1230]
 
 # Specify years to create an array (with years as columns).
-yrarr = ["2025"]
+yrarr = ["2015"]
 
 # yrarr = [
 #     "1984",

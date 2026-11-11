@@ -299,8 +299,8 @@ geonames = [
     "CaliPart1",
     "CaliPart2",
 ]
-geoindex=list(range(0,1))
-#geoindex = list(range(0, 39))  # 0:38
+#geoindex=list(range(0,1))
+geoindex = list(range(1, 38))  # 0:38
 geolist = [geolist[i] for i in geoindex]
 geonames = [geonames[i] for i in geoindex]
 
